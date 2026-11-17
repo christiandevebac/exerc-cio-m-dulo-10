@@ -1,49 +1,81 @@
-$(document).ready(function () {
-    $('#carousel-imagens').slick({
-        autoplay: true,
-        arrows: false
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. CARROSSEL AUTOMÁTICO
+    const imagens = document.querySelectorAll('#carousel-imagens img');
+    let indiceAtual = 0;
+
+    if (imagens.length > 0) {
+        imagens.forEach((img, index) => {
+            img.style.display = index === 0 ? 'block' : 'none';
+        });
+
+        setInterval(() => {
+            imagens[indiceAtual].style.display = 'none';
+            indiceAtual = (indiceAtual + 1) % imagens.length;
+            imagens[indiceAtual].style.display = 'block';
+        }, 3000);
+    }
+
+    // 2. MÁSCARAS AUTOMÁTICAS (Telefone, CPF e CEP)
+    const inputTelefone = document.getElementById('telefone');
+    const inputCpf = document.getElementById('cpf');
+    const inputCep = document.getElementById('cep');
+
+    inputTelefone.placeholder = '(DDD) 12345-6789';
+    inputCpf.placeholder = '123.456.789-00';
+    inputCep.placeholder = '01234-567';
+
+    inputTelefone.addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+        v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+        v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+        e.target.value = v;
     });
 
-    $('#telefone').mask('(00) 00000-0000', {
-        placeholder: '(DDD) 12345-6789'
+    inputCpf.addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = v;
     });
 
-    $('#cpf').mask('000.000.000-00', {
-        placeholder: '123.456.789-00'
+    inputCep.addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+        v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+        e.target.value = v;
     });
 
-    $('#cep').mask('00000-000', {
-        placeholder: '01234-567'
-    });
+    // 3. VALIDAÇÃO DO FORMULÁRIO
+    const form = document.getElementById('form');
 
-    $('form').validate({
-        rules: {
-            nome: {
-                required: true
-            },
-            email: {
-                required: true,
-                email: true
-            },
-            telefone: {
-                required: true
-            },
-            endereco: {
-                required: true
-            },
-            cep: {
-                required: true
-            },
-            cpf: {
-                required: true
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const campos = form.querySelectorAll('input');
+        let temErro = false;
+
+        // Remove avisos antigos antes de validar novamente
+        form.querySelectorAll('label.error').forEach(el => el.remove());
+
+        campos.forEach(campo => {
+            campo.classList.remove('error');
+
+            if (!campo.value.trim()) {
+                temErro = true;
+                campo.classList.add('error');
+
+                const msgErro = document.createElement('label');
+                msgErro.className = 'error';
+                msgErro.textContent = 'Este campo é obrigatório.';
+                campo.parentElement.appendChild(msgErro);
             }
-        },
-        submitHandler: function (form) {
-            alert("Sua requisição foi enviada para análise, parabéns pela aquisição!");
+        });
+
+        if (temErro) {
+            alert('Por favor, preencha os campos para prosseguir com a compra!');
+        } else {
+            alert('Sua requisição foi enviada para análise, parabéns pela aquisição!');
             form.reset();
-        },
-        invalidHandler: function (form, validator) {
-            alert("Por favor, preencha os campos para prosseguir com a compra!");
         }
     });
 });
